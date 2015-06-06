@@ -20,7 +20,7 @@ import java.util.Optional;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-public class DefaultYouTubeDlAdapterTest {
+public class YouTubeDownloaderAdapterTest {
     private static final String VIDEO_URL_SHORT = "https://www.youtube.com/watch?gl=GB&hl=en-GB&v=oHg5SJYRHA0";
     private static final String VIDEO_URL_SPECIAL_ENCODING = "https://www.youtube.com/watch?v=z-wi-HyaASc";
     private static final String VIDEO_URL_PLAYLIST = "https://www.youtube.com/watch?v=YANRGTqELow&list=RDYANRGTqELow";
@@ -28,7 +28,7 @@ public class DefaultYouTubeDlAdapterTest {
 
     private Mockery context;
     private File destinationDirectory;
-    private BinaryConfiguration binaryConfiguration;
+    private BaseBinaryConfiguration binaryConfiguration;
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -37,7 +37,7 @@ public class DefaultYouTubeDlAdapterTest {
     public void setUp() {
         this.context = new Mockery();
         this.destinationDirectory = new File(".");
-        this.binaryConfiguration = new DefaultBinaryConfiguration(new File("youtube-dl.exe"), new File("ffmpeg.exe"));
+        this.binaryConfiguration = new BinaryConfiguration(new File("youtube-dl.exe"), new File("ffmpeg.exe"));
     }
 
     @After
@@ -52,22 +52,22 @@ public class DefaultYouTubeDlAdapterTest {
     }
 
     @Test
-    public void retrievesTheTitle() throws IOException, YouTubeDlAdapterException {
-        DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
+    public void retrievesTheTitle() throws IOException, DownloadException {
+        YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
 
         assertThat("Title is correct", target.getTitle(), is("RickRoll'D"));
     }
 
     @Test
-    public void retrievesTheFilename() throws IOException, YouTubeDlAdapterException {
-        DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
+    public void retrievesTheFilename() throws IOException, DownloadException {
+        YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
 
         assertThat("Filename is correct", target.getFilename(), is("RickRoll'D_oHg5SJYRHA0.mp4"));
     }
 
     @Test
-    public void downloadsVideoFile() throws IOException, InterruptedException, YouTubeDlAdapterException {
-        DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
+    public void downloadsVideoFile() throws IOException, InterruptedException, DownloadException {
+        YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
 
         target.downloadVideo(Optional.empty(), Optional.empty());
 
@@ -76,8 +76,8 @@ public class DefaultYouTubeDlAdapterTest {
     }
 
     @Test
-    public void downloadsAudioFile() throws IOException, InterruptedException, YouTubeDlAdapterException {
-        DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
+    public void downloadsAudioFile() throws IOException, InterruptedException, DownloadException {
+        YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
 
         target.downloadAudio(Optional.empty(), Optional.empty());
 
@@ -88,8 +88,8 @@ public class DefaultYouTubeDlAdapterTest {
     }
 
     @Test
-    public void downloadsFileWithDifferentFilenameEncoding() throws IOException, InterruptedException, YouTubeDlAdapterException {
-        DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SPECIAL_ENCODING), this.destinationDirectory, this.binaryConfiguration);
+    public void downloadsFileWithDifferentFilenameEncoding() throws IOException, InterruptedException, DownloadException {
+        YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(new URL(VIDEO_URL_SPECIAL_ENCODING), this.destinationDirectory, this.binaryConfiguration);
 
         target.downloadVideo(Optional.empty(), Optional.empty());
 
@@ -98,8 +98,8 @@ public class DefaultYouTubeDlAdapterTest {
     }
 
     @Test
-    public void downloadsSingleEntryFromPlaylistInsteadOfAll() throws IOException, InterruptedException, YouTubeDlAdapterException {
-        DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_PLAYLIST), this.destinationDirectory, this.binaryConfiguration);
+    public void downloadsSingleEntryFromPlaylistInsteadOfAll() throws IOException, InterruptedException, DownloadException {
+        YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(new URL(VIDEO_URL_PLAYLIST), this.destinationDirectory, this.binaryConfiguration);
 
         target.downloadVideo(Optional.empty(), Optional.empty());
 
@@ -108,20 +108,20 @@ public class DefaultYouTubeDlAdapterTest {
     }
 
     @Test
-    public void firesEventsOnStateChange() throws MalformedURLException, YouTubeDlAdapterException {
-        YouTubeDlStateEvent stateChangeCallback = this.context.mock(YouTubeDlStateEvent.class);
+    public void firesEventsOnStateChange() throws MalformedURLException, DownloadException {
+        StateChangeEvent stateChangeCallback = this.context.mock(StateChangeEvent.class);
         Sequence sequence = context.sequence("STATE_CHANGE_ORDER");
         this.context.checking(new Expectations() {{
-            oneOf(stateChangeCallback).submit(DownloadState.RESOLVING);
+            oneOf(stateChangeCallback).submit(State.RESOLVING);
             inSequence(sequence);
-            oneOf(stateChangeCallback).submit(DownloadState.DOWNLOADING);
+            oneOf(stateChangeCallback).submit(State.DOWNLOADING);
             inSequence(sequence);
-            oneOf(stateChangeCallback).submit(DownloadState.CONVERTING);
+            oneOf(stateChangeCallback).submit(State.CONVERTING);
             inSequence(sequence);
-            oneOf(stateChangeCallback).submit(DownloadState.COMPLETE);
+            oneOf(stateChangeCallback).submit(State.COMPLETE);
             inSequence(sequence);
         }});
-        DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
+        YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
 
         target.downloadAudio(Optional.of(stateChangeCallback), Optional.empty());
 
@@ -129,12 +129,12 @@ public class DefaultYouTubeDlAdapterTest {
     }
 
     @Test
-    public void firesEventsOnProgressOutput() throws MalformedURLException, YouTubeDlAdapterException {
-        YouTubeDlProgressEvent progressCallback = this.context.mock(YouTubeDlProgressEvent.class);
+    public void firesEventsOnProgressOutput() throws MalformedURLException, DownloadException {
+        DownloadProgressUpdateEvent progressCallback = this.context.mock(DownloadProgressUpdateEvent.class);
         this.context.checking(new Expectations() {{
             atLeast(1).of(progressCallback).submit(with(any(DownloadProgress.class)));
         }});
-        DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
+        YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
 
         target.downloadVideo(Optional.empty(), Optional.of(progressCallback));
 
@@ -142,10 +142,10 @@ public class DefaultYouTubeDlAdapterTest {
     }
 
     @Test
-    public void throwsAnExceptionIfThereIsErrorOutput() throws IOException, YouTubeDlAdapterException {
-        this.expectedException.expect(YouTubeDlAdapterException.class);
+    public void throwsAnExceptionIfThereIsErrorOutput() throws IOException, DownloadException {
+        this.expectedException.expect(DownloadException.class);
         this.expectedException.expectMessage("ERROR: Incomplete YouTube ID INVALIDURL. URL " + VIDEO_URL_INVALID + " looks truncated.");
-        DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_INVALID), this.destinationDirectory, this.binaryConfiguration);
+        YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(new URL(VIDEO_URL_INVALID), this.destinationDirectory, this.binaryConfiguration);
 
         target.downloadVideo(Optional.empty(), Optional.empty());
     }

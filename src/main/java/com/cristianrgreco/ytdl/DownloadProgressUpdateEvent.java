@@ -1,6 +1,6 @@
 package com.cristianrgreco.ytdl;
 
 @FunctionalInterface
-public interface YouTubeDlProgressEvent {
+public interface DownloadProgressUpdateEvent {
     abstract void submit(DownloadProgress downloadProgress);
 }
