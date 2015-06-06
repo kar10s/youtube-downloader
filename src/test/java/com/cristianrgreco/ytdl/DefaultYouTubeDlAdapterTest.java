@@ -2,6 +2,7 @@ package com.cristianrgreco.ytdl;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;
+import org.jmock.Sequence;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -68,7 +69,7 @@ public class DefaultYouTubeDlAdapterTest {
     public void downloadsVideoFile() throws IOException, InterruptedException, YouTubeDlAdapterException {
         DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
 
-        target.downloadVideo(Optional.empty(), Optional.empty(), Optional.empty());
+        target.downloadVideo(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
 
         File videoFile = new File("RickRoll'D_oHg5SJYRHA0.mp4");
         assertThat("Video file exists", videoFile.exists(), is(true));
@@ -78,7 +79,7 @@ public class DefaultYouTubeDlAdapterTest {
     public void downloadsAudioFile() throws IOException, InterruptedException, YouTubeDlAdapterException {
         DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
 
-        target.downloadAudio(Optional.empty(), Optional.empty(), Optional.empty());
+        target.downloadAudio(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
 
         File audioFile = new File("RickRoll'D_oHg5SJYRHA0.mp3");
         assertThat("Audio file exists", audioFile.exists(), is(true));
@@ -90,7 +91,7 @@ public class DefaultYouTubeDlAdapterTest {
     public void downloadsFileWithSpecialEncoding() throws IOException, InterruptedException, YouTubeDlAdapterException {
         DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SPECIAL_ENCODING), this.destinationDirectory, this.binaryConfiguration);
 
-        target.downloadVideo(Optional.empty(), Optional.empty(), Optional.empty());
+        target.downloadVideo(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
 
         File videoFile = new File("PSY-GANGNAM STYLE(English Lyrics_subtitle) Emoticon   _z-wi-HyaASc.mp4");
         assertThat("Video file exists", videoFile.exists(), is(true));
@@ -100,10 +101,31 @@ public class DefaultYouTubeDlAdapterTest {
     public void downloadsSingleFileFromPlaylist() throws IOException, InterruptedException, YouTubeDlAdapterException {
         DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_PLAYLIST), this.destinationDirectory, this.binaryConfiguration);
 
-        target.downloadVideo(Optional.empty(), Optional.empty(), Optional.empty());
+        target.downloadVideo(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
 
         File videoFile = new File("Coleccionista de canciones - Camila (Letra)_YANRGTqELow.mp4");
         assertThat("Video file exists", videoFile.exists(), is(true));
+    }
+
+    @Test
+    public void firesEventsOnStateChange() throws MalformedURLException, YouTubeDlAdapterException {
+        YouTubeDlStateEvent stateChangeCallback = this.context.mock(YouTubeDlStateEvent.class);
+        Sequence sequence = context.sequence("STATE_CHANGE_ORDER");
+        this.context.checking(new Expectations() {{
+            oneOf(stateChangeCallback).submit(DownloadState.RESOLVING);
+            inSequence(sequence);
+            oneOf(stateChangeCallback).submit(DownloadState.DOWNLOADING);
+            inSequence(sequence);
+            oneOf(stateChangeCallback).submit(DownloadState.CONVERTING);
+            inSequence(sequence);
+            oneOf(stateChangeCallback).submit(DownloadState.COMPLETE);
+            inSequence(sequence);
+        }});
+        DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
+
+        target.downloadAudio(Optional.of(stateChangeCallback), Optional.empty(), Optional.empty(), Optional.empty());
+
+        this.context.assertIsSatisfied();
     }
 
     @Test
@@ -114,7 +136,7 @@ public class DefaultYouTubeDlAdapterTest {
         }});
         DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
 
-        target.downloadVideo(Optional.of(progressCallback), Optional.empty(), Optional.empty());
+        target.downloadVideo(Optional.empty(), Optional.of(progressCallback), Optional.empty(), Optional.empty());
 
         this.context.assertIsSatisfied();
     }
@@ -127,7 +149,7 @@ public class DefaultYouTubeDlAdapterTest {
         }});
         DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
 
-        target.downloadVideo(Optional.empty(), Optional.of(outputCallback), Optional.empty());
+        target.downloadVideo(Optional.empty(), Optional.empty(), Optional.of(outputCallback), Optional.empty());
 
         this.context.assertIsSatisfied();
     }
@@ -140,7 +162,7 @@ public class DefaultYouTubeDlAdapterTest {
         }});
         DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_INVALID), this.destinationDirectory, this.binaryConfiguration);
 
-        target.downloadVideo(Optional.empty(), Optional.empty(), Optional.of(errorCallback));
+        target.downloadVideo(Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(errorCallback));
 
         this.context.assertIsSatisfied();
     }
@@ -151,15 +173,6 @@ public class DefaultYouTubeDlAdapterTest {
         this.expectedException.expectMessage("ERROR: Incomplete YouTube ID INVALIDURL. URL " + VIDEO_URL_INVALID + " looks truncated.");
         DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_INVALID), this.destinationDirectory, this.binaryConfiguration);
 
-        target.downloadVideo(Optional.empty(), Optional.empty(), Optional.empty());
-    }
-
-    @Test
-    public void testUsage() throws MalformedURLException, YouTubeDlAdapterException {
-        YouTubeDlAdapter ytdl = new DefaultYouTubeDlAdapter(
-                new URL("https://www.youtube.com/watch?v=lWA2pjMjpBs"),
-                new File("C:\\Users\\crgreco\\Desktop"),
-                this.binaryConfiguration);
-        ytdl.downloadAudio(Optional.empty(), Optional.of(System.out::println), Optional.empty());
+        target.downloadVideo(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
     }
 }
