@@ -14,7 +14,7 @@ public class StateTest {
 
     private static final String PROGRESS_MESSAGE = "[download]   0.0% of 9.22MiB at Unknown speed ETA Unknown ETA";
     private static final String INVALID_PROGRESS_MESSAGE_1 = "[invalid]   0.0% of 9.22MiB at Unknown speed ETA Unknown ETA";
-    private static final String INVALID_PROGRESS_MESSAGE_2 = "Deleting original file C:\\Users\\crgreco\\Desktop\\RickRoll'D_oHg5SJYRHA0.mp4 (pass -k to keep)";
+    private static final String INVALID_PROGRESS_MESSAGE_2 = "Deleting original file C:\\Users\\crgreco\\Desktop\\RickRoll'D_oHg5SJYRHA0.mp4";
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();

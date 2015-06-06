@@ -3,10 +3,7 @@ package com.cristianrgreco.ytdl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +17,6 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
     private static final String OUTPUT_FORMAT = "%(title)s_%(id)s.%(ext)s";
 
     private final URL targetUrl;
-    private final File destinationDirectory;
 
     private final String getTitleCommand;
     private final String getFilenameCommand;
@@ -31,7 +27,6 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
 
     public YouTubeDownloaderAdapter(URL targetUrl, File destinationDirectory, BaseBinaryConfiguration binaryConfiguration) {
         this.targetUrl = targetUrl;
-        this.destinationDirectory = destinationDirectory;
 
         String commandBase = binaryConfiguration.getYouTubeDlBinary().getAbsolutePath();
         this.getTitleCommand = String.format(
@@ -42,34 +37,28 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
                 commandBase, OUTPUT_FORMAT, VIDEO_FORMAT);
         this.downloadVideoCommand = String.format(
                 "%s -o %s%c%s --format %s --no-part --no-playlist",
-                commandBase, this.destinationDirectory, File.separatorChar, OUTPUT_FORMAT, VIDEO_FORMAT);
+                commandBase, destinationDirectory, File.separatorChar, OUTPUT_FORMAT, VIDEO_FORMAT);
         this.downloadAudioCommand = String.format(
                 "%s -o %s%c%s --format %s --extract-audio --audio-format %s --ffmpeg-location %s --no-part --no-playlist",
-                commandBase, this.destinationDirectory, File.separatorChar, OUTPUT_FORMAT, VIDEO_FORMAT, AUDIO_FORMAT, binaryConfiguration.getFfmpegBinary().getAbsolutePath());
+                commandBase, destinationDirectory, File.separatorChar, OUTPUT_FORMAT, VIDEO_FORMAT, AUDIO_FORMAT,
+                binaryConfiguration.getFfmpegBinary().getAbsolutePath());
     }
 
     @Override
     public String getTitle() throws DownloadException {
-        try {
-            Process process = Runtime.getRuntime().exec(this.getTitleCommand + " " + this.targetUrl.toString());
-            Optional<List<String>> outputMessages = getOutputMessages(process);
-            Optional<List<String>> errorMessages = getErrorMessages(process);
-            if (errorMessages.isPresent()) {
-                throw new DownloadException(errorMessages.get().stream().reduce((a, b) -> a + "; " + b).get());
-            }
-            return outputMessages.get().get(0);
-        } catch (IOException e) {
-            LOGGER.error(null, e);
-            throw new IllegalStateException(e);
-        }
+        return this.lastLineOfOutput(this.getTitleCommand + " " + this.targetUrl.toString());
     }
 
     @Override
     public String getFilename() throws DownloadException {
+        return this.lastLineOfOutput(this.getFilenameCommand + " " + this.targetUrl.toString());
+    }
+
+    private String lastLineOfOutput(String command) throws DownloadException {
         try {
-            Process process = Runtime.getRuntime().exec(this.getFilenameCommand + " " + this.targetUrl.toString());
-            Optional<List<String>> outputMessages = getOutputMessages(process);
-            Optional<List<String>> errorMessages = getErrorMessages(process);
+            Process process = Runtime.getRuntime().exec(command);
+            Optional<List<String>> outputMessages = this.getOutputMessages(process);
+            Optional<List<String>> errorMessages = this.getErrorMessages(process);
             if (errorMessages.isPresent()) {
                 throw new DownloadException(errorMessages.get().stream().reduce((a, b) -> a + "; " + b).get());
             }
@@ -81,9 +70,25 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
     }
 
     @Override
-    public void downloadVideo(Optional<StateChangeEvent> stateChangeCallback, Optional<DownloadProgressUpdateEvent> progressUpdateCallback) throws DownloadException {
+    public void downloadVideo(
+            Optional<StateChangeEvent> stateChangeCallback,
+            Optional<DownloadProgressUpdateEvent> progressUpdateCallback) throws DownloadException {
+        this.download(this.downloadVideoCommand + " " + this.targetUrl.toString(), stateChangeCallback, progressUpdateCallback);
+    }
+
+    @Override
+    public void downloadAudio(
+            Optional<StateChangeEvent> stateChangeCallback,
+            Optional<DownloadProgressUpdateEvent> progressUpdateCallback) throws DownloadException {
+        this.download(this.downloadAudioCommand + " " + this.targetUrl.toString(), stateChangeCallback, progressUpdateCallback);
+    }
+
+    private void download(
+            String command,
+            Optional<StateChangeEvent> stateChangeCallback,
+            Optional<DownloadProgressUpdateEvent> progressUpdateCallback) throws DownloadException {
         try {
-            Process process = Runtime.getRuntime().exec(this.downloadVideoCommand + " " + this.targetUrl.toString());
+            Process process = Runtime.getRuntime().exec(command);
 
             if (stateChangeCallback.isPresent() || progressUpdateCallback.isPresent()) {
                 BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -118,7 +123,7 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
                 }
             }
 
-            Optional<List<String>> errorMessages = getErrorMessages(process);
+            Optional<List<String>> errorMessages = this.getErrorMessages(process);
             if (errorMessages.isPresent()) {
                 throw new DownloadException(errorMessages.get().stream().reduce((a, b) -> a + "; " + b).get());
             }
@@ -129,92 +134,30 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
         }
     }
 
-    @Override
-    public void downloadAudio(Optional<StateChangeEvent> stateChangeCallback, Optional<DownloadProgressUpdateEvent> progressCallback) throws DownloadException {
-        try {
-            Process process = Runtime.getRuntime().exec(this.downloadAudioCommand + " " + this.targetUrl.toString());
-
-            if (stateChangeCallback.isPresent() || progressCallback.isPresent()) {
-                BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                String line;
-                try {
-                    while ((line = input.readLine()) != null) {
-                        if (line.trim().isEmpty()) {
-                            continue;
-                        }
-                        if (stateChangeCallback.isPresent()) {
-                            if (State.isValidStateMessage(line)) {
-                                State newState = State.parse(line);
-                                if (this.currentState != newState) {
-                                    this.currentState = newState;
-                                    stateChangeCallback.get().submit(this.currentState);
-                                }
-                            }
-                        }
-                        if (progressCallback.isPresent()) {
-                            if (DownloadProgress.isValidProgressMessage(line)) {
-                                progressCallback.get().submit(DownloadProgress.parse(line));
-                            }
-                        }
-                    }
-                    if (stateChangeCallback.isPresent()) {
-                        this.currentState = State.COMPLETE;
-                        stateChangeCallback.get().submit(this.currentState);
-                    }
-                } catch (IOException e) {
-                    LOGGER.error(null, e);
-                    throw new IllegalStateException(e);
-                }
-            }
-
-            Optional<List<String>> errorMessages = getErrorMessages(process);
-            if (errorMessages.isPresent()) {
-                throw new DownloadException(errorMessages.get().stream().reduce((a, b) -> a + "; " + b).get());
-            }
-            process.waitFor();
-        } catch (IOException | InterruptedException e) {
-            LOGGER.error(null, e);
-            throw new IllegalStateException(e);
-        }
+    private Optional<List<String>> getOutputMessages(Process process) {
+        return this.getMessages(process.getInputStream());
     }
 
-    private static Optional<List<String>> getOutputMessages(Process process) {
-        List<String> outputMessages = new ArrayList<>();
+    private Optional<List<String>> getErrorMessages(Process process) {
+        return this.getMessages(process.getErrorStream());
+    }
 
-        BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    private Optional<List<String>> getMessages(InputStream is) {
+        List<String> messages = new ArrayList<>();
+
+        BufferedReader input = new BufferedReader(new InputStreamReader(is));
         String line;
         try {
             while ((line = input.readLine()) != null) {
-                outputMessages.add(line);
+                messages.add(line);
             }
         } catch (IOException e) {
             LOGGER.error(null, e);
             throw new IllegalStateException(e);
         }
 
-        if (outputMessages.size() > 0) {
-            return Optional.of(outputMessages);
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    private static Optional<List<String>> getErrorMessages(Process process) {
-        List<String> errorMessages = new ArrayList<>();
-
-        BufferedReader input = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-        String line;
-        try {
-            while ((line = input.readLine()) != null) {
-                errorMessages.add(line);
-            }
-        } catch (IOException e) {
-            LOGGER.error(null, e);
-            throw new IllegalStateException(e);
-        }
-
-        if (errorMessages.size() > 0) {
-            return Optional.of(errorMessages);
+        if (messages.size() > 0) {
+            return Optional.of(messages);
         } else {
             return Optional.empty();
         }
