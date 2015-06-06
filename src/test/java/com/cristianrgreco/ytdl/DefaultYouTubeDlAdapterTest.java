@@ -69,7 +69,7 @@ public class DefaultYouTubeDlAdapterTest {
     public void downloadsVideoFile() throws IOException, InterruptedException, YouTubeDlAdapterException {
         DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
 
-        target.downloadVideo(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        target.downloadVideo(Optional.empty(), Optional.empty());
 
         File videoFile = new File("RickRoll'D_oHg5SJYRHA0.mp4");
         assertThat("Video file exists", videoFile.exists(), is(true));
@@ -79,7 +79,7 @@ public class DefaultYouTubeDlAdapterTest {
     public void downloadsAudioFile() throws IOException, InterruptedException, YouTubeDlAdapterException {
         DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
 
-        target.downloadAudio(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        target.downloadAudio(Optional.empty(), Optional.empty());
 
         File audioFile = new File("RickRoll'D_oHg5SJYRHA0.mp3");
         assertThat("Audio file exists", audioFile.exists(), is(true));
@@ -88,20 +88,20 @@ public class DefaultYouTubeDlAdapterTest {
     }
 
     @Test
-    public void downloadsFileWithSpecialEncoding() throws IOException, InterruptedException, YouTubeDlAdapterException {
+    public void downloadsFileWithDifferentFilenameEncoding() throws IOException, InterruptedException, YouTubeDlAdapterException {
         DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SPECIAL_ENCODING), this.destinationDirectory, this.binaryConfiguration);
 
-        target.downloadVideo(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        target.downloadVideo(Optional.empty(), Optional.empty());
 
         File videoFile = new File("PSY-GANGNAM STYLE(English Lyrics_subtitle) Emoticon   _z-wi-HyaASc.mp4");
         assertThat("Video file exists", videoFile.exists(), is(true));
     }
 
     @Test
-    public void downloadsSingleFileFromPlaylist() throws IOException, InterruptedException, YouTubeDlAdapterException {
+    public void downloadsSingleEntryFromPlaylistInsteadOfAll() throws IOException, InterruptedException, YouTubeDlAdapterException {
         DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_PLAYLIST), this.destinationDirectory, this.binaryConfiguration);
 
-        target.downloadVideo(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        target.downloadVideo(Optional.empty(), Optional.empty());
 
         File videoFile = new File("Coleccionista de canciones - Camila (Letra)_YANRGTqELow.mp4");
         assertThat("Video file exists", videoFile.exists(), is(true));
@@ -123,7 +123,7 @@ public class DefaultYouTubeDlAdapterTest {
         }});
         DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
 
-        target.downloadAudio(Optional.of(stateChangeCallback), Optional.empty(), Optional.empty(), Optional.empty());
+        target.downloadAudio(Optional.of(stateChangeCallback), Optional.empty());
 
         this.context.assertIsSatisfied();
     }
@@ -136,33 +136,7 @@ public class DefaultYouTubeDlAdapterTest {
         }});
         DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
 
-        target.downloadVideo(Optional.empty(), Optional.of(progressCallback), Optional.empty(), Optional.empty());
-
-        this.context.assertIsSatisfied();
-    }
-
-    @Test
-    public void firesEventsOnOutput() throws MalformedURLException, YouTubeDlAdapterException {
-        YouTubeDlEvent outputCallback = this.context.mock(YouTubeDlEvent.class);
-        this.context.checking(new Expectations() {{
-            atLeast(1).of(outputCallback).submit(with(any(String.class)));
-        }});
-        DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_SHORT), this.destinationDirectory, this.binaryConfiguration);
-
-        target.downloadVideo(Optional.empty(), Optional.empty(), Optional.of(outputCallback), Optional.empty());
-
-        this.context.assertIsSatisfied();
-    }
-
-    @Test
-    public void firesEventsOnErrorOutput() throws MalformedURLException, YouTubeDlAdapterException {
-        YouTubeDlEvent errorCallback = this.context.mock(YouTubeDlEvent.class);
-        this.context.checking(new Expectations() {{
-            atLeast(1).of(errorCallback).submit(with(any(String.class)));
-        }});
-        DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_INVALID), this.destinationDirectory, this.binaryConfiguration);
-
-        target.downloadVideo(Optional.empty(), Optional.empty(), Optional.empty(), Optional.of(errorCallback));
+        target.downloadVideo(Optional.empty(), Optional.of(progressCallback));
 
         this.context.assertIsSatisfied();
     }
@@ -173,6 +147,6 @@ public class DefaultYouTubeDlAdapterTest {
         this.expectedException.expectMessage("ERROR: Incomplete YouTube ID INVALIDURL. URL " + VIDEO_URL_INVALID + " looks truncated.");
         DefaultYouTubeDlAdapter target = new DefaultYouTubeDlAdapter(new URL(VIDEO_URL_INVALID), this.destinationDirectory, this.binaryConfiguration);
 
-        target.downloadVideo(Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+        target.downloadVideo(Optional.empty(), Optional.empty());
     }
 }

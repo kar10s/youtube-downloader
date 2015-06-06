@@ -7,13 +7,7 @@ public interface YouTubeDlAdapter {
 
     String getFilename() throws YouTubeDlAdapterException;
 
-    void downloadVideo(Optional<YouTubeDlStateEvent> stateChangeCallback,
-                       Optional<YouTubeDlProgressEvent> progressCallback,
-                       Optional<YouTubeDlEvent> outputCallback,
-                       Optional<YouTubeDlEvent> errorCallback) throws YouTubeDlAdapterException;
+    void downloadVideo(Optional<YouTubeDlStateEvent> stateChangeCallback, Optional<YouTubeDlProgressEvent> progressCallback) throws YouTubeDlAdapterException;
 
-    void downloadAudio(Optional<YouTubeDlStateEvent> stateChangeCallback,
-                       Optional<YouTubeDlProgressEvent> progressCallback,
-                       Optional<YouTubeDlEvent> outputCallback,
-                       Optional<YouTubeDlEvent> errorCallback) throws YouTubeDlAdapterException;
+    void downloadAudio(Optional<YouTubeDlStateEvent> stateChangeCallback, Optional<YouTubeDlProgressEvent> progressCallback) throws YouTubeDlAdapterException;
 }

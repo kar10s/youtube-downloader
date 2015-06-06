@@ -81,11 +81,11 @@ public class DefaultYouTubeDlAdapter implements YouTubeDlAdapter {
     }
 
     @Override
-    public void downloadVideo(Optional<YouTubeDlStateEvent> stateChangeCallback, Optional<YouTubeDlProgressEvent> progressCallback, Optional<YouTubeDlEvent> outputCallback, Optional<YouTubeDlEvent> errorCallback) throws YouTubeDlAdapterException {
+    public void downloadVideo(Optional<YouTubeDlStateEvent> stateChangeCallback, Optional<YouTubeDlProgressEvent> progressCallback) throws YouTubeDlAdapterException {
         try {
             Process process = Runtime.getRuntime().exec(this.downloadVideoCommand + " " + this.targetUrl.toString());
 
-            if (stateChangeCallback.isPresent() || outputCallback.isPresent() || progressCallback.isPresent()) {
+            if (stateChangeCallback.isPresent() || progressCallback.isPresent()) {
                 BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 String line;
                 try {
@@ -102,9 +102,6 @@ public class DefaultYouTubeDlAdapter implements YouTubeDlAdapter {
                                 }
                             }
                         }
-                        if (outputCallback.isPresent()) {
-                            outputCallback.get().submit(line);
-                        }
                         if (progressCallback.isPresent()) {
                             if (DownloadProgress.isValidProgressMessage(line)) {
                                 progressCallback.get().submit(DownloadProgress.parse(line));
@@ -114,19 +111,6 @@ public class DefaultYouTubeDlAdapter implements YouTubeDlAdapter {
                     if (stateChangeCallback.isPresent()) {
                         this.currentState = DownloadState.COMPLETE;
                         stateChangeCallback.get().submit(this.currentState);
-                    }
-                } catch (IOException e) {
-                    LOGGER.error(null, e);
-                    throw new IllegalStateException(e);
-                }
-            }
-
-            if (errorCallback.isPresent()) {
-                BufferedReader input = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                String line;
-                try {
-                    while ((line = input.readLine()) != null) {
-                        errorCallback.get().submit(line);
                     }
                 } catch (IOException e) {
                     LOGGER.error(null, e);
@@ -146,11 +130,11 @@ public class DefaultYouTubeDlAdapter implements YouTubeDlAdapter {
     }
 
     @Override
-    public void downloadAudio(Optional<YouTubeDlStateEvent> stateChangeCallback, Optional<YouTubeDlProgressEvent> progressCallback, Optional<YouTubeDlEvent> outputCallback, Optional<YouTubeDlEvent> errorCallback) throws YouTubeDlAdapterException {
+    public void downloadAudio(Optional<YouTubeDlStateEvent> stateChangeCallback, Optional<YouTubeDlProgressEvent> progressCallback) throws YouTubeDlAdapterException {
         try {
             Process process = Runtime.getRuntime().exec(this.downloadAudioCommand + " " + this.targetUrl.toString());
 
-            if (stateChangeCallback.isPresent() || outputCallback.isPresent() || progressCallback.isPresent()) {
+            if (stateChangeCallback.isPresent() || progressCallback.isPresent()) {
                 BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 String line;
                 try {
@@ -167,9 +151,6 @@ public class DefaultYouTubeDlAdapter implements YouTubeDlAdapter {
                                 }
                             }
                         }
-                        if (outputCallback.isPresent()) {
-                            outputCallback.get().submit(line);
-                        }
                         if (progressCallback.isPresent()) {
                             if (DownloadProgress.isValidProgressMessage(line)) {
                                 progressCallback.get().submit(DownloadProgress.parse(line));
@@ -179,19 +160,6 @@ public class DefaultYouTubeDlAdapter implements YouTubeDlAdapter {
                     if (stateChangeCallback.isPresent()) {
                         this.currentState = DownloadState.COMPLETE;
                         stateChangeCallback.get().submit(this.currentState);
-                    }
-                } catch (IOException e) {
-                    LOGGER.error(null, e);
-                    throw new IllegalStateException(e);
-                }
-            }
-
-            if (errorCallback.isPresent()) {
-                BufferedReader input = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-                String line;
-                try {
-                    while ((line = input.readLine()) != null) {
-                        errorCallback.get().submit(line);
                     }
                 } catch (IOException e) {
                     LOGGER.error(null, e);
