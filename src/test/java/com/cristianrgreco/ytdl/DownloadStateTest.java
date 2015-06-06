@@ -13,7 +13,8 @@ public class DownloadStateTest {
     private static final String CONVERTING_MESSAGE = "[ffmpeg] Destination: RickRoll'D_oHg5SJYRHA0.mp3";
 
     private static final String PROGRESS_MESSAGE = "[download]   0.0% of 9.22MiB at Unknown speed ETA Unknown ETA";
-    private static final String INVALID_PROGRESS_MESSAGE = "Deleting original file C:\\Users\\crgreco\\Desktop\\RickRoll'D_oHg5SJYRHA0.mp4 (pass -k to keep)";
+    private static final String INVALID_PROGRESS_MESSAGE_1 = "[invalid]   0.0% of 9.22MiB at Unknown speed ETA Unknown ETA";
+    private static final String INVALID_PROGRESS_MESSAGE_2 = "Deleting original file C:\\Users\\crgreco\\Desktop\\RickRoll'D_oHg5SJYRHA0.mp4 (pass -k to keep)";
 
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
@@ -37,7 +38,7 @@ public class DownloadStateTest {
     public void throwsExceptionIfAttemptToParseInvalidProgressMessage() {
         this.expectedException.expect(IllegalArgumentException.class);
 
-        DownloadState.parse(INVALID_PROGRESS_MESSAGE);
+        DownloadState.parse(INVALID_PROGRESS_MESSAGE_1);
     }
 
     @Test
@@ -47,6 +48,7 @@ public class DownloadStateTest {
 
     @Test
     public void invalidatesIncorrectStateMessage() {
-        assertThat("State message is incorrect", DownloadState.isValidStateMessage(INVALID_PROGRESS_MESSAGE), is(false));
+        assertThat("State message is incorrect", DownloadState.isValidStateMessage(INVALID_PROGRESS_MESSAGE_1), is(false));
+        assertThat("State message is incorrect", DownloadState.isValidStateMessage(INVALID_PROGRESS_MESSAGE_2), is(false));
     }
 }
