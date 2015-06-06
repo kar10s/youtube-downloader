@@ -120,7 +120,7 @@ public class DefaultYouTubeDlAdapter implements YouTubeDlAdapter {
 
             Optional<List<String>> errorMessages = getErrorMessages(process);
             if (errorMessages.isPresent()) {
-                throw new YouTubeDlAdapterException(errorMessages.get().toString());
+                throw new YouTubeDlAdapterException(errorMessages.get().stream().reduce((a, b) -> a + "; " + b).get());
             }
             process.waitFor();
         } catch (IOException | InterruptedException e) {
@@ -169,7 +169,7 @@ public class DefaultYouTubeDlAdapter implements YouTubeDlAdapter {
 
             Optional<List<String>> errorMessages = getErrorMessages(process);
             if (errorMessages.isPresent()) {
-                throw new YouTubeDlAdapterException(errorMessages.get().toString());
+                throw new YouTubeDlAdapterException(errorMessages.get().stream().reduce((a, b) -> a + "; " + b).get());
             }
             process.waitFor();
         } catch (IOException | InterruptedException e) {
