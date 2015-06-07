@@ -48,7 +48,9 @@ public class YouTubeDownloaderAdapterTest {
     public void setUp() {
         this.context = new Mockery();
         this.destinationDirectory = new File(".");
-        this.binaryConfiguration = new BinaryConfiguration(new File("youtube-dl.exe"), new File("ffmpeg.exe"));
+        this.binaryConfiguration = new BinaryConfiguration(
+                new File("C:\\Users\\crgreco\\Desktop\\youtube-dl.exe"),
+                new File("C:\\Users\\crgreco\\Desktop\\ffmpeg.exe"));
     }
 
     @After
@@ -155,7 +157,7 @@ public class YouTubeDownloaderAdapterTest {
     @Test
     public void throwsAnExceptionIfThereIsErrorOutput() throws IOException, DownloadException {
         this.expectedException.expect(DownloadException.class);
-        this.expectedException.expectMessage("ERROR: Incomplete YouTube ID INVALIDURL. URL " + VIDEO_URL_INVALID + " looks truncated.");
+        this.expectedException.expectMessage(is("Incomplete YouTube ID INVALIDURL. URL " + VIDEO_URL_INVALID + " looks truncated."));
         YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(VIDEO_URL_INVALID, this.destinationDirectory, this.binaryConfiguration);
 
         target.downloadVideo(Optional.empty(), Optional.empty());

@@ -1,8 +1,5 @@
 package com.cristianrgreco.ytdl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
@@ -10,8 +7,6 @@ import java.util.List;
 import java.util.Optional;
 
 public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(YouTubeDownloaderAdapter.class);
-
     private static final String VIDEO_FORMAT = "mp4";
     private static final String AUDIO_FORMAT = "mp3";
     private static final String OUTPUT_FORMAT = "%(title)s_%(id)s.%(ext)s";
@@ -60,11 +55,10 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
             Optional<List<String>> outputMessages = this.getOutputMessages(process);
             Optional<List<String>> errorMessages = this.getErrorMessages(process);
             if (errorMessages.isPresent()) {
-                throw new DownloadException(errorMessages.get().stream().reduce((a, b) -> a + "; " + b).get());
+                throw new DownloadException(this.errorMessagesToString(errorMessages.get()));
             }
             return outputMessages.get().get(0);
         } catch (IOException e) {
-            LOGGER.error(null, e);
             throw new IllegalStateException(e);
         }
     }
@@ -118,18 +112,16 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
                         stateChangeCallback.get().callback(this.currentState);
                     }
                 } catch (IOException e) {
-                    LOGGER.error(null, e);
                     throw new IllegalStateException(e);
                 }
             }
 
             Optional<List<String>> errorMessages = this.getErrorMessages(process);
             if (errorMessages.isPresent()) {
-                throw new DownloadException(errorMessages.get().stream().reduce((a, b) -> a + "; " + b).get());
+                throw new DownloadException(this.errorMessagesToString(errorMessages.get()));
             }
             process.waitFor();
         } catch (IOException | InterruptedException e) {
-            LOGGER.error(null, e);
             throw new IllegalStateException(e);
         }
     }
@@ -152,7 +144,6 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
                 messages.add(line);
             }
         } catch (IOException e) {
-            LOGGER.error(null, e);
             throw new IllegalStateException(e);
         }
 
@@ -161,5 +152,16 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
         } else {
             return Optional.empty();
         }
+    }
+
+    private String errorMessagesToString(List<String> errorMessages) {
+        return errorMessages.stream()
+                .map(message -> {
+                    if (message.startsWith("ERROR: ")) {
+                        message = message.substring(7);
+                    }
+                    return message;
+                })
+                .reduce((a, b) -> a + "; " + b).get();
     }
 }

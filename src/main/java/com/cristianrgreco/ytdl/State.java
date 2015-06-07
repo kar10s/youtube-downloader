@@ -1,8 +1,5 @@
 package com.cristianrgreco.ytdl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.regex.Pattern;
 
 public enum State {
@@ -11,8 +8,6 @@ public enum State {
     DOWNLOADING,
     CONVERTING,
     COMPLETE;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(State.class);
 
     private static final Pattern RESOLVING_PATTERN = Pattern.compile("\\[youtube\\].*");
     private static final Pattern DOWNLOADING_PATTERN = Pattern.compile("\\[download\\]");
@@ -27,8 +22,7 @@ public enum State {
         } else if (CONVERTING_PATTERN.matcher(stateMessage).find()) {
             return State.CONVERTING;
         }
-        LOGGER.error("Unable to parse: " + stateMessage);
-        throw new IllegalArgumentException();
+        throw new IllegalArgumentException("Unable to parse: " + stateMessage);
     }
 
     public static boolean isValidStateMessage(String stateMessage) {

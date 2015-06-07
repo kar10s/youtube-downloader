@@ -1,15 +1,10 @@
 package com.cristianrgreco.ytdl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.math.BigDecimal;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class DownloadProgress {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DownloadProgress.class);
-
     private static final Pattern PERCENTAGE_COMPLETE = Pattern.compile(".*?([0-9.]+)");
     private static final Pattern FILE_SIZE = Pattern.compile(".*of.*?([A-z0-9].+?) ");
     private static final Pattern DOWNLOAD_SPEED = Pattern.compile(".*at.*?(([A-z0-9].+?)|(Unknown)) ");
@@ -40,8 +35,7 @@ public class DownloadProgress {
                 !fileSizeMatcher.find() ||
                 !downloadSpeedMatcher.find() ||
                 !etaMatcher.find()) {
-            LOGGER.error("Unable to parse: " + progressMessage);
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("Unable to parse: " + progressMessage);
         }
 
         BigDecimal percentageComplete = new BigDecimal(percentageCompleteMatcher.group(1));

@@ -7,6 +7,9 @@ public class BinaryConfiguration implements BaseBinaryConfiguration {
     private final File ffmpegBinary;
 
     public BinaryConfiguration(File youTubeDlBinary, File ffmpegBinary) {
+        if (!youTubeDlBinary.exists() || !ffmpegBinary.exists()) {
+            throw new IllegalArgumentException("YouTubeDl and Ffmpeg binaries must exist");
+        }
         this.youTubeDlBinary = youTubeDlBinary;
         this.ffmpegBinary = ffmpegBinary;
     }
