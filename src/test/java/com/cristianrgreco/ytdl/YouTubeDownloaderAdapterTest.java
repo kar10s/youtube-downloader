@@ -157,7 +157,7 @@ public class YouTubeDownloaderAdapterTest {
     @Test
     public void throwsAnExceptionIfThereIsErrorOutput() throws IOException, DownloadException {
         this.expectedException.expect(DownloadException.class);
-        this.expectedException.expectMessage(is("Incomplete YouTube ID INVALIDURL. URL " + VIDEO_URL_INVALID + " looks truncated."));
+        this.expectedException.expectMessage(is("ERROR: Incomplete YouTube ID INVALIDURL. URL " + VIDEO_URL_INVALID + " looks truncated."));
         YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(VIDEO_URL_INVALID, this.destinationDirectory, this.binaryConfiguration);
 
         target.downloadVideo(Optional.empty(), Optional.empty());

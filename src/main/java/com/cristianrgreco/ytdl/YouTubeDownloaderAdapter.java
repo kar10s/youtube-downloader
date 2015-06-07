@@ -155,13 +155,6 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
     }
 
     private String errorMessagesToString(List<String> errorMessages) {
-        return errorMessages.stream()
-                .map(message -> {
-                    if (message.startsWith("ERROR: ")) {
-                        message = message.substring(7);
-                    }
-                    return message;
-                })
-                .reduce((a, b) -> a + "; " + b).get();
+        return errorMessages.stream().reduce((a, b) -> a + "; " + b).get();
     }
 }
