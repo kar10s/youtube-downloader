@@ -123,13 +123,13 @@ public class YouTubeDownloaderAdapterTest {
         StateChangeEvent stateChangeCallback = this.context.mock(StateChangeEvent.class);
         Sequence sequence = context.sequence("STATE_CHANGE_ORDER");
         this.context.checking(new Expectations() {{
-            oneOf(stateChangeCallback).submit(State.RESOLVING);
+            oneOf(stateChangeCallback).callback(State.RESOLVING);
             inSequence(sequence);
-            oneOf(stateChangeCallback).submit(State.DOWNLOADING);
+            oneOf(stateChangeCallback).callback(State.DOWNLOADING);
             inSequence(sequence);
-            oneOf(stateChangeCallback).submit(State.CONVERTING);
+            oneOf(stateChangeCallback).callback(State.CONVERTING);
             inSequence(sequence);
-            oneOf(stateChangeCallback).submit(State.COMPLETE);
+            oneOf(stateChangeCallback).callback(State.COMPLETE);
             inSequence(sequence);
         }});
         YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(VIDEO_URL_SHORT, this.destinationDirectory, this.binaryConfiguration);
@@ -143,7 +143,7 @@ public class YouTubeDownloaderAdapterTest {
     public void firesEventsOnProgressOutput() throws MalformedURLException, DownloadException {
         DownloadProgressUpdateEvent progressUpdateCallback = this.context.mock(DownloadProgressUpdateEvent.class);
         this.context.checking(new Expectations() {{
-            atLeast(1).of(progressUpdateCallback).submit(with(any(DownloadProgress.class)));
+            atLeast(1).of(progressUpdateCallback).callback(with(any(DownloadProgress.class)));
         }});
         YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(VIDEO_URL_SHORT, this.destinationDirectory, this.binaryConfiguration);
 

@@ -103,19 +103,19 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
                                 State newState = State.parse(line);
                                 if (this.currentState != newState) {
                                     this.currentState = newState;
-                                    stateChangeCallback.get().submit(this.currentState);
+                                    stateChangeCallback.get().callback(this.currentState);
                                 }
                             }
                         }
                         if (progressUpdateCallback.isPresent()) {
                             if (DownloadProgress.isValidProgressMessage(line)) {
-                                progressUpdateCallback.get().submit(DownloadProgress.parse(line));
+                                progressUpdateCallback.get().callback(DownloadProgress.parse(line));
                             }
                         }
                     }
                     if (stateChangeCallback.isPresent()) {
                         this.currentState = State.COMPLETE;
-                        stateChangeCallback.get().submit(this.currentState);
+                        stateChangeCallback.get().callback(this.currentState);
                     }
                 } catch (IOException e) {
                     LOGGER.error(null, e);
