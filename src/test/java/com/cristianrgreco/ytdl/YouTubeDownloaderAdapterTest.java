@@ -10,7 +10,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
@@ -23,6 +22,7 @@ import static org.hamcrest.Matchers.is;
 public class YouTubeDownloaderAdapterTest {
     private static final URL VIDEO_URL_SHORT;
     private static final URL VIDEO_URL_SPECIAL_ENCODING;
+    private static final URL VIDEO_URL_TITLE_SPECIAL_ENCODING;
     private static final URL VIDEO_URL_PLAYLIST;
     private static final URL VIDEO_URL_INVALID;
 
@@ -30,6 +30,7 @@ public class YouTubeDownloaderAdapterTest {
         try {
             VIDEO_URL_SHORT = new URL("https://www.youtube.com/watch?gl=GB&hl=en-GB&v=oHg5SJYRHA0");
             VIDEO_URL_SPECIAL_ENCODING = new URL("https://www.youtube.com/watch?v=z-wi-HyaASc");
+            VIDEO_URL_TITLE_SPECIAL_ENCODING = new URL("https://www.youtube.com/watch?v=jcF5HtGvX5I");
             VIDEO_URL_PLAYLIST = new URL("https://www.youtube.com/watch?v=YANRGTqELow&list=RDYANRGTqELow");
             VIDEO_URL_INVALID = new URL("https://www.youtube.com/watch?v=INVALIDURL");
         } catch (MalformedURLException e) {
@@ -65,21 +66,28 @@ public class YouTubeDownloaderAdapterTest {
     }
 
     @Test
-    public void retrievesTheTitle() throws IOException, DownloadException {
+    public void retrievesTheTitle() throws DownloadException {
         YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(VIDEO_URL_SHORT, this.destinationDirectory, this.binaryConfiguration);
 
         assertThat("Title is correct", target.getTitle(), is("RickRoll'D"));
     }
 
     @Test
-    public void retrievesTheFilename() throws IOException, DownloadException {
+    public void retrievesTheTitleWithCorrectEncoding() throws DownloadException {
+        YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(VIDEO_URL_TITLE_SPECIAL_ENCODING, this.destinationDirectory, this.binaryConfiguration);
+
+        assertThat("Title is with correct encoding", target.getTitle(), is("Beyoncé - Yoncé"));
+    }
+
+    @Test
+    public void retrievesTheFilename() throws DownloadException {
         YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(VIDEO_URL_SHORT, this.destinationDirectory, this.binaryConfiguration);
 
         assertThat("Filename is correct", target.getFilename(), is("RickRoll'D_oHg5SJYRHA0.mp4"));
     }
 
     @Test
-    public void downloadsVideoFile() throws IOException, InterruptedException, DownloadException {
+    public void downloadsVideoFile() throws InterruptedException, DownloadException {
         YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(VIDEO_URL_SHORT, this.destinationDirectory, this.binaryConfiguration);
 
         target.downloadVideo(Optional.empty(), Optional.empty());
@@ -89,7 +97,7 @@ public class YouTubeDownloaderAdapterTest {
     }
 
     @Test
-    public void downloadsAudioFile() throws IOException, InterruptedException, DownloadException {
+    public void downloadsAudioFile() throws InterruptedException, DownloadException {
         YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(VIDEO_URL_SHORT, this.destinationDirectory, this.binaryConfiguration);
 
         target.downloadAudio(Optional.empty(), Optional.empty());
@@ -101,7 +109,7 @@ public class YouTubeDownloaderAdapterTest {
     }
 
     @Test
-    public void downloadsFileWithDifferentFilenameEncoding() throws IOException, InterruptedException, DownloadException {
+    public void downloadsFileWithDifferentFilenameEncoding() throws InterruptedException, DownloadException {
         YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(VIDEO_URL_SPECIAL_ENCODING, this.destinationDirectory, this.binaryConfiguration);
 
         target.downloadVideo(Optional.empty(), Optional.empty());
@@ -111,7 +119,7 @@ public class YouTubeDownloaderAdapterTest {
     }
 
     @Test
-    public void downloadsSingleEntryFromPlaylistInsteadOfAll() throws IOException, InterruptedException, DownloadException {
+    public void downloadsSingleEntryFromPlaylistInsteadOfAll() throws InterruptedException, DownloadException {
         YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(VIDEO_URL_PLAYLIST, this.destinationDirectory, this.binaryConfiguration);
 
         target.downloadVideo(Optional.empty(), Optional.empty());
@@ -155,7 +163,7 @@ public class YouTubeDownloaderAdapterTest {
     }
 
     @Test
-    public void throwsAnExceptionIfThereIsErrorOutput() throws IOException, DownloadException {
+    public void throwsAnExceptionIfThereIsErrorOutput() throws DownloadException {
         this.expectedException.expect(DownloadException.class);
         this.expectedException.expectMessage(is("ERROR: Incomplete YouTube ID INVALIDURL. URL " + VIDEO_URL_INVALID + " looks truncated."));
         YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(VIDEO_URL_INVALID, this.destinationDirectory, this.binaryConfiguration);

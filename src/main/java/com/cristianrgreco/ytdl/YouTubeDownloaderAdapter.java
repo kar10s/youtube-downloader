@@ -25,7 +25,7 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
 
         String commandBase = binaryConfiguration.getYouTubeDlBinary().getAbsolutePath();
         this.getTitleCommand = String.format(
-                "%s --get-title --no-part --no-playlist",
+                "%s --get-title --encoding 'UTF-8' --no-part --no-playlist",
                 commandBase);
         this.getFilenameCommand = String.format(
                 "%s -o %s --get-filename --format %s --no-part --no-playlist",
