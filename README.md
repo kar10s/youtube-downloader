@@ -7,7 +7,7 @@
 ```
 YouTubeDownloaderAdapter ytdl = new YouTubeDownloaderAdapter(
     "https://www.youtube.com/watch?v=lWA2pjMjpBs",
-    new File("/Users/<username>/Desktop"),
+    new File("/Users/crgreco/Music"),
     new BinaryConfiguration(/* ... */));
 
 ytdl.downloadAudio(Optional.of(System.out::println), Optional.empty());
