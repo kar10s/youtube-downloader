@@ -6,4 +6,6 @@ public interface BaseBinaryConfiguration {
     File getYouTubeDlBinary();
 
     File getFfmpegBinary();
+
+    File getFfprobeBinary();
 }

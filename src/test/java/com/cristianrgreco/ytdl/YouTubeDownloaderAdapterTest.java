@@ -10,18 +10,20 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 
 public class YouTubeDownloaderAdapterTest {
+    private static final File YOUTUBEDL_BINARY;
+    private static final File FFMPEG_BINARY;
+    private static final File FFPROBE_BINARY;
+
     private static final URL VIDEO_URL_SHORT;
     private static final URL VIDEO_URL_SPECIAL_ENCODING;
     private static final URL VIDEO_URL_TITLE_SPECIAL_ENCODING;
@@ -29,6 +31,16 @@ public class YouTubeDownloaderAdapterTest {
     private static final URL VIDEO_URL_INVALID;
 
     static {
+        try {
+            Properties properties = new Properties();
+            properties.load(ClassLoader.class.getResourceAsStream("/config.properties"));
+            YOUTUBEDL_BINARY = new File(properties.getProperty("YOUTUBE-DL_BINARY_PATH"));
+            FFMPEG_BINARY = new File(properties.getProperty("FFMPEG_BINARY_PATH"));
+            FFPROBE_BINARY = new File(properties.getProperty("FFPROBE_BINARY_PATH"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
         try {
             VIDEO_URL_SHORT = new URL("https://www.youtube.com/watch?gl=GB&hl=en-GB&v=oHg5SJYRHA0");
             VIDEO_URL_SPECIAL_ENCODING = new URL("https://www.youtube.com/watch?v=z-wi-HyaASc");
@@ -51,9 +63,7 @@ public class YouTubeDownloaderAdapterTest {
     public void setUp() {
         this.context = new Mockery();
         this.destinationDirectory = new File(".");
-        this.binaryConfiguration = new BinaryConfiguration(
-                new File("C:\\Users\\crgreco\\Desktop\\youtube-dl.exe"),
-                new File("C:\\Users\\crgreco\\Desktop\\ffmpeg.exe"));
+        this.binaryConfiguration = new BinaryConfiguration(YOUTUBEDL_BINARY, FFMPEG_BINARY, FFPROBE_BINARY);
     }
 
     @After
