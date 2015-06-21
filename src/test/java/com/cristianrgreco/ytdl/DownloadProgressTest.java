@@ -68,7 +68,7 @@ public class DownloadProgressTest {
 
     @Test
     public void validatesCorrectProgressMessage() {
-        assertThat("Process message is correct", DownloadProgress.isValidProgressMessage(PROGRESS_MESSAGE), is(true));
+        assertThat("Progress message is correct", DownloadProgress.isValidProgressMessage(PROGRESS_MESSAGE), is(true));
     }
 
     @Test
