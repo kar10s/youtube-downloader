@@ -12,12 +12,14 @@ import org.junit.rules.ExpectedException;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 
 public class YouTubeDownloaderAdapterTest {
     private static final URL VIDEO_URL_SHORT;
@@ -165,9 +167,41 @@ public class YouTubeDownloaderAdapterTest {
     @Test
     public void throwsAnExceptionIfThereIsErrorOutput() throws DownloadException {
         this.expectedException.expect(DownloadException.class);
-        this.expectedException.expectMessage(is("ERROR: Incomplete YouTube ID INVALIDURL. URL " + VIDEO_URL_INVALID + " looks truncated."));
+        this.expectedException.expectMessage(is("Incomplete YouTube ID INVALIDURL. URL " + VIDEO_URL_INVALID + " looks truncated."));
         YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(VIDEO_URL_INVALID, this.destinationDirectory, this.binaryConfiguration);
 
         target.downloadVideo(Optional.empty(), Optional.empty());
+    }
+
+    @Test
+    public void createsAndThrowsExceptionForAllErrorMessages() {
+        List<String> errorMessages = new ArrayList<String>() {{
+            add("WARNING: Warning 1");
+            add("ERROR: Error 1");
+            add("WARNING: Warning 2");
+            add("WARNING: Warning 3");
+        }};
+        YouTubeDownloaderAdapter target = new YouTubeDownloaderAdapter(VIDEO_URL_INVALID, this.destinationDirectory, this.binaryConfiguration);
+
+        DownloadException exception = target.createExceptionForErrorMessages(errorMessages);
+
+        assertThat("Exception knows an error has occurred", exception.hasErrorOccurred(), is(true));
+
+        assertThat(exception.getErrorMessage().getMessage(), is("Warning 3"));
+        assertThat(exception.getErrorMessage().getType(), is(Message.Type.WARNING));
+
+        DownloadException cause1 = (DownloadException) exception.getCause();
+        assertThat(cause1.getErrorMessage().getMessage(), is("Warning 2"));
+        assertThat(cause1.getErrorMessage().getType(), is(Message.Type.WARNING));
+
+        DownloadException cause2 = (DownloadException) exception.getCause().getCause();
+        assertThat(cause2.getErrorMessage().getMessage(), is("Error 1"));
+        assertThat(cause2.getErrorMessage().getType(), is(Message.Type.ERROR));
+
+        DownloadException cause3 = (DownloadException) exception.getCause().getCause().getCause();
+        assertThat(cause3.getErrorMessage().getMessage(), is("Warning 1"));
+        assertThat(cause3.getErrorMessage().getType(), is(Message.Type.WARNING));
+
+        assertThat(exception.getCause().getCause().getCause().getCause(), nullValue());
     }
 }

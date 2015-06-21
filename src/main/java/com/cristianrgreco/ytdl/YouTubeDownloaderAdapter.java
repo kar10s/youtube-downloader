@@ -55,7 +55,7 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
             Optional<List<String>> outputMessages = this.getOutputMessages(process);
             Optional<List<String>> errorMessages = this.getErrorMessages(process);
             if (errorMessages.isPresent()) {
-                throw new DownloadException(this.errorMessagesToString(errorMessages.get()));
+                throw this.createExceptionForErrorMessages(errorMessages.get());
             }
             return outputMessages.get().get(0);
         } catch (IOException e) {
@@ -118,7 +118,7 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
 
             Optional<List<String>> errorMessages = this.getErrorMessages(process);
             if (errorMessages.isPresent()) {
-                throw new DownloadException(this.errorMessagesToString(errorMessages.get()));
+                throw this.createExceptionForErrorMessages(errorMessages.get());
             }
             process.waitFor();
         } catch (IOException | InterruptedException e) {
@@ -154,7 +154,9 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
         }
     }
 
-    private String errorMessagesToString(List<String> errorMessages) {
-        return errorMessages.stream().reduce((a, b) -> a + "; " + b).get();
+    DownloadException createExceptionForErrorMessages(List<String> errorMessages) {
+        return errorMessages.stream()
+                .map(errorMessage -> new DownloadException(Message.from(errorMessage)))
+                .reduce((prev, current) -> new DownloadException(current.getErrorMessage(), prev)).get();
     }
 }
