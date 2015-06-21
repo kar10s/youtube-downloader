@@ -12,10 +12,10 @@ public class BinaryConfiguration implements BaseBinaryConfiguration {
 
     public BinaryConfiguration(File youTubeDlBinary, File ffmpegBinary, File ffprobeBinary) {
         if (!youTubeDlBinary.exists() || !ffmpegBinary.exists() || !ffprobeBinary.exists()) {
-            throw new IllegalArgumentException("YouTubeDl, Ffmpeg and Ffprobe binaries must exist");
+            throw new IllegalArgumentException("YouTubeDl, Ffmpeg and Ffprobe binaries not found");
         }
         if (!areBinariesFunctioningCorrectly(youTubeDlBinary, ffmpegBinary, ffprobeBinary)) {
-            throw new IllegalArgumentException("YouTubeDl, Ffmpeg and Ffprobe binaries must function correctly");
+            throw new IllegalArgumentException("YouTubeDl, Ffmpeg and Ffprobe binaries not functioning as expected");
         }
         this.youTubeDlBinary = youTubeDlBinary;
         this.ffmpegBinary = ffmpegBinary;

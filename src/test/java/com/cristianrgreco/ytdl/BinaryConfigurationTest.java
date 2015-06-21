@@ -44,7 +44,7 @@ public class BinaryConfigurationTest {
     @Test
     public void throwsExceptionIfYouTubeDlBinaryDoesNotExist() {
         expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage(is("YouTubeDl, Ffmpeg and Ffprobe binaries must exist"));
+        expectedException.expectMessage(is("YouTubeDl, Ffmpeg and Ffprobe binaries not found"));
 
         new BinaryConfiguration(NON_EXISTENT_FILE, FFMPEG_BINARY, FFPROBE_BINARY);
     }
@@ -52,7 +52,7 @@ public class BinaryConfigurationTest {
     @Test
     public void throwsExceptionIfFfmpegBinaryDoesNotExist() {
         expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage(is("YouTubeDl, Ffmpeg and Ffprobe binaries must exist"));
+        expectedException.expectMessage(is("YouTubeDl, Ffmpeg and Ffprobe binaries not found"));
 
         new BinaryConfiguration(YOUTUBEDL_BINARY, NON_EXISTENT_FILE, FFPROBE_BINARY);
     }
@@ -60,7 +60,7 @@ public class BinaryConfigurationTest {
     @Test
     public void throwsExceptionIfFfprobeBinaryDoesNotExist() {
         expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage(is("YouTubeDl, Ffmpeg and Ffprobe binaries must exist"));
+        expectedException.expectMessage(is("YouTubeDl, Ffmpeg and Ffprobe binaries not found"));
 
         new BinaryConfiguration(YOUTUBEDL_BINARY, FFMPEG_BINARY, NON_EXISTENT_FILE);
     }
@@ -68,7 +68,7 @@ public class BinaryConfigurationTest {
     @Test
     public void throwsExceptionIfYouTubeDlBinaryIsInvalid() {
         expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage(is("YouTubeDl, Ffmpeg and Ffprobe binaries must function correctly"));
+        expectedException.expectMessage(is("YouTubeDl, Ffmpeg and Ffprobe binaries not functioning as expected"));
         File invalidYouTubeDlBinary = this.createTempFile("youtube-dl");
 
         new BinaryConfiguration(invalidYouTubeDlBinary, FFMPEG_BINARY, FFPROBE_BINARY);
@@ -77,7 +77,7 @@ public class BinaryConfigurationTest {
     @Test
     public void throwsExceptionIfFfmpegBinaryIsInvalid() {
         expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage(is("YouTubeDl, Ffmpeg and Ffprobe binaries must function correctly"));
+        expectedException.expectMessage(is("YouTubeDl, Ffmpeg and Ffprobe binaries not functioning as expected"));
         File invalidFfmpegBinary = this.createTempFile("ffmpeg");
 
         new BinaryConfiguration(YOUTUBEDL_BINARY, invalidFfmpegBinary, FFPROBE_BINARY);
@@ -86,7 +86,7 @@ public class BinaryConfigurationTest {
     @Test
     public void throwsExceptionIfFfprobeBinaryIsInvalid() {
         expectedException.expect(IllegalArgumentException.class);
-        expectedException.expectMessage(is("YouTubeDl, Ffmpeg and Ffprobe binaries must function correctly"));
+        expectedException.expectMessage(is("YouTubeDl, Ffmpeg and Ffprobe binaries not functioning as expected"));
         File invalidFfprobeBinary = this.createTempFile("ffprobe");
 
         new BinaryConfiguration(YOUTUBEDL_BINARY, FFMPEG_BINARY, invalidFfprobeBinary);
