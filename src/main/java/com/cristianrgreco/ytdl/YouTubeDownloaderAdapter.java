@@ -3,6 +3,7 @@ package com.cristianrgreco.ytdl;
 import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,10 +14,10 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
 
     private final URL targetUrl;
 
-    private final String getTitleCommand;
-    private final String getFilenameCommand;
-    private final String downloadVideoCommand;
-    private final String downloadAudioCommand;
+    private final List<String> getTitleCommand;
+    private final List<String> getFilenameCommand;
+    private final List<String> downloadVideoCommand;
+    private final List<String> downloadAudioCommand;
 
     private State currentState = State.NONE;
 
@@ -24,34 +25,60 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
         this.targetUrl = targetUrl;
 
         String commandBase = binaryConfiguration.getYouTubeDlBinary().getAbsolutePath();
-        this.getTitleCommand = String.format(
-                "%s --get-title --encoding 'UTF-8' --no-part --no-playlist",
-                commandBase);
-        this.getFilenameCommand = String.format(
-                "%s -o %s --get-filename --format %s --no-part --no-playlist",
-                commandBase, OUTPUT_FORMAT, VIDEO_FORMAT);
-        this.downloadVideoCommand = String.format(
-                "%s -o %s%c%s --format %s --no-part --no-playlist",
-                commandBase, destinationDirectory, File.separatorChar, OUTPUT_FORMAT, VIDEO_FORMAT);
-        this.downloadAudioCommand = String.format(
-                "%s -o %s%c%s --format %s --extract-audio --audio-format %s --ffmpeg-location %s --no-part --no-playlist",
-                commandBase, destinationDirectory, File.separatorChar, OUTPUT_FORMAT, VIDEO_FORMAT, AUDIO_FORMAT,
-                binaryConfiguration.getFfmpegBinary().getAbsolutePath());
+        this.getTitleCommand = new ArrayList<>(Arrays.asList(
+                commandBase,
+                "--get-title",
+                "--encoding", "UTF-8",
+                "--no-part",
+                "--no-playlist"
+        ));
+        this.getFilenameCommand = new ArrayList<>(Arrays.asList(
+                commandBase,
+                "-o", OUTPUT_FORMAT,
+                "--get-filename",
+                "--format", VIDEO_FORMAT,
+                "--no-part",
+                "--no-playlist"
+        ));
+        this.downloadVideoCommand = new ArrayList<>(Arrays.asList(
+                commandBase,
+                "-o", destinationDirectory + File.separator + OUTPUT_FORMAT,
+                "--format", VIDEO_FORMAT,
+                "--no-part",
+                "--no-playlist"
+        ));
+        this.downloadAudioCommand = new ArrayList<>(Arrays.asList(
+                commandBase,
+                "-o", destinationDirectory + File.separator + OUTPUT_FORMAT,
+                "--format", VIDEO_FORMAT,
+                "--extract-audio",
+                "--audio-format", AUDIO_FORMAT,
+                "--ffmpeg-location", binaryConfiguration.getFfmpegBinary().getAbsolutePath(),
+                "--no-part", "--no-playlist"
+        ));
     }
 
     @Override
     public String getTitle() throws DownloadException {
-        return this.lastLineOfOutput(this.getTitleCommand + " " + this.targetUrl.toString());
+        List<String> command = new ArrayList<String>() {{
+            addAll(getTitleCommand);
+            add(targetUrl.toString());
+        }};
+        return this.lastLineOfOutput(new ProcessBuilder(command));
     }
 
     @Override
     public String getFilename() throws DownloadException {
-        return this.lastLineOfOutput(this.getFilenameCommand + " " + this.targetUrl.toString());
+        List<String> command = new ArrayList<String>() {{
+            addAll(getFilenameCommand);
+            add(targetUrl.toString());
+        }};
+        return this.lastLineOfOutput(new ProcessBuilder(command));
     }
 
-    private String lastLineOfOutput(String command) throws DownloadException {
+    private String lastLineOfOutput(ProcessBuilder command) throws DownloadException {
         try {
-            Process process = Runtime.getRuntime().exec(command);
+            Process process = command.start();
             Optional<List<String>> outputMessages = this.getOutputMessages(process);
             Optional<List<String>> errorMessages = this.getErrorMessages(process);
             if (errorMessages.isPresent()) {
@@ -67,22 +94,30 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
     public void downloadVideo(
             Optional<StateChangeEvent> stateChangeCallback,
             Optional<DownloadProgressUpdateEvent> progressUpdateCallback) throws DownloadException {
-        this.download(this.downloadVideoCommand + " " + this.targetUrl.toString(), stateChangeCallback, progressUpdateCallback);
+        List<String> command = new ArrayList<String>() {{
+            addAll(downloadVideoCommand);
+            add(targetUrl.toString());
+        }};
+        this.download(new ProcessBuilder(command), stateChangeCallback, progressUpdateCallback);
     }
 
     @Override
     public void downloadAudio(
             Optional<StateChangeEvent> stateChangeCallback,
             Optional<DownloadProgressUpdateEvent> progressUpdateCallback) throws DownloadException {
-        this.download(this.downloadAudioCommand + " " + this.targetUrl.toString(), stateChangeCallback, progressUpdateCallback);
+        List<String> command = new ArrayList<String>() {{
+            addAll(downloadAudioCommand);
+            add(targetUrl.toString());
+        }};
+        this.download(new ProcessBuilder(command), stateChangeCallback, progressUpdateCallback);
     }
 
     private void download(
-            String command,
+            ProcessBuilder command,
             Optional<StateChangeEvent> stateChangeCallback,
             Optional<DownloadProgressUpdateEvent> progressUpdateCallback) throws DownloadException {
         try {
-            Process process = Runtime.getRuntime().exec(command);
+            Process process = command.start();
 
             if (stateChangeCallback.isPresent() || progressUpdateCallback.isPresent()) {
                 BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));

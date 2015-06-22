@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class BinaryConfiguration implements BaseBinaryConfiguration {
     private final File youTubeDlBinary;
@@ -23,11 +24,15 @@ public class BinaryConfiguration implements BaseBinaryConfiguration {
     }
 
     private static boolean areBinariesFunctioningCorrectly(File youTubeDlBinary, File ffmpegBinary, File ffprobeBinary) {
+        List<String> youtubeDlCommand = new ArrayList<>(Arrays.asList(youTubeDlBinary.getAbsolutePath(), "--version"));
+        List<String> ffmpegCommand = new ArrayList<>(Arrays.asList(ffmpegBinary.getAbsolutePath(), "-version"));
+        List<String> ffProbeCommand = new ArrayList<>(Arrays.asList(ffprobeBinary.getAbsolutePath(), "-version"));
+
         try {
             return new ArrayList<>(Arrays.asList(
-                    Runtime.getRuntime().exec(String.format("%s --version", youTubeDlBinary.getAbsolutePath())),
-                    Runtime.getRuntime().exec(String.format("%s -version", ffmpegBinary.getAbsolutePath())),
-                    Runtime.getRuntime().exec(String.format("%s -version", ffprobeBinary.getAbsolutePath())))
+                    new ProcessBuilder(youtubeDlCommand).start(),
+                    new ProcessBuilder(ffmpegCommand).start(),
+                    new ProcessBuilder(ffProbeCommand).start())
             ).parallelStream().map(process -> {
                 try {
                     process.waitFor();
