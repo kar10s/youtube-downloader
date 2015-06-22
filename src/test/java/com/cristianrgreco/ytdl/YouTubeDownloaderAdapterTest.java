@@ -72,6 +72,7 @@ public class YouTubeDownloaderAdapterTest {
                 new File("RickRoll'D_oHg5SJYRHA0.mp4"),
                 new File("RickRoll'D_oHg5SJYRHA0.mp3"),
                 new File("PSY-GANGNAM STYLE(English Lyrics_subtitle) Emoticon   _z-wi-HyaASc.mp4"),
+                new File("PSY-GANGNAM STYLE(English Lyrics_subtitle) Emoticon 강남스타일 영어 가사_z-wi-HyaASc.mp4"),
                 new File("Coleccionista de canciones - Camila (Letra)_YANRGTqELow.mp4")
         );
         tempFiles.parallelStream().filter(File::exists).forEach(File::delete);
@@ -126,8 +127,9 @@ public class YouTubeDownloaderAdapterTest {
 
         target.downloadVideo(Optional.empty(), Optional.empty());
 
-        File videoFile = new File("PSY-GANGNAM STYLE(English Lyrics_subtitle) Emoticon   _z-wi-HyaASc.mp4");
-        assertThat("Video file exists", videoFile.exists(), is(true));
+        File videoFile1 = new File("PSY-GANGNAM STYLE(English Lyrics_subtitle) Emoticon   _z-wi-HyaASc.mp4");
+        File videoFile2 = new File("PSY-GANGNAM STYLE(English Lyrics_subtitle) Emoticon 강남스타일 영어 가사_z-wi-HyaASc.mp4");
+        assertThat("Video file exists", videoFile1.exists() || videoFile2.exists(), is(true));
     }
 
     @Test
