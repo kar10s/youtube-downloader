@@ -54,7 +54,8 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
                 "--extract-audio",
                 "--audio-format", AUDIO_FORMAT,
                 "--ffmpeg-location", binaryConfiguration.getFfmpegBinary().getAbsolutePath(),
-                "--no-part", "--no-playlist"
+                "--no-part",
+                "--no-playlist"
         ));
     }
 

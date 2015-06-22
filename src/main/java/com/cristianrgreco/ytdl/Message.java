@@ -20,11 +20,11 @@ public class Message {
             String messageText = text.substring(ERROR_PREFIX.length()).trim();
             return new Message(messageText, Type.ERROR);
         } else {
-            throw new IllegalArgumentException("Unable to construct Message from: " + text);
+            return new Message(text, Type.ERROR);
         }
     }
 
-    public static enum Type {
+    public enum Type {
         WARNING,
         ERROR
     }
