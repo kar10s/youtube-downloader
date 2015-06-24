@@ -12,42 +12,41 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
     private static final String AUDIO_FORMAT = "mp3";
     private static final String OUTPUT_FORMAT = "%(title)s_%(id)s.%(ext)s";
 
-    private final URL targetUrl;
-
-    private final List<String> getTitleCommand;
-    private final List<String> getFilenameCommand;
-    private final List<String> downloadVideoCommand;
-    private final List<String> downloadAudioCommand;
+    private final ProcessBuilder getTitleProcess;
+    private final ProcessBuilder getFilenameProcess;
+    private final ProcessBuilder downloadVideoProcess;
+    private final ProcessBuilder downloadAudioProcess;
 
     private State currentState = State.NONE;
 
     public YouTubeDownloaderAdapter(URL targetUrl, File destinationDirectory, BaseBinaryConfiguration binaryConfiguration) {
-        this.targetUrl = targetUrl;
-
         String commandBase = binaryConfiguration.getYouTubeDlBinary().getAbsolutePath();
-        this.getTitleCommand = new ArrayList<>(Arrays.asList(
+        this.getTitleProcess = new ProcessBuilder(Arrays.asList(
                 commandBase,
                 "--get-title",
                 "--encoding", "UTF-8",
                 "--no-part",
-                "--no-playlist"
+                "--no-playlist",
+                targetUrl.toString()
         ));
-        this.getFilenameCommand = new ArrayList<>(Arrays.asList(
+        this.getFilenameProcess = new ProcessBuilder(Arrays.asList(
                 commandBase,
                 "-o", OUTPUT_FORMAT,
                 "--get-filename",
                 "--format", VIDEO_FORMAT,
                 "--no-part",
-                "--no-playlist"
+                "--no-playlist",
+                targetUrl.toString()
         ));
-        this.downloadVideoCommand = new ArrayList<>(Arrays.asList(
+        this.downloadVideoProcess = new ProcessBuilder(Arrays.asList(
                 commandBase,
                 "-o", destinationDirectory + File.separator + OUTPUT_FORMAT,
                 "--format", VIDEO_FORMAT,
                 "--no-part",
-                "--no-playlist"
+                "--no-playlist",
+                targetUrl.toString()
         ));
-        this.downloadAudioCommand = new ArrayList<>(Arrays.asList(
+        this.downloadAudioProcess = new ProcessBuilder(Arrays.asList(
                 commandBase,
                 "-o", destinationDirectory + File.separator + OUTPUT_FORMAT,
                 "--format", VIDEO_FORMAT,
@@ -55,26 +54,19 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
                 "--audio-format", AUDIO_FORMAT,
                 "--ffmpeg-location", binaryConfiguration.getFfmpegBinary().getAbsolutePath(),
                 "--no-part",
-                "--no-playlist"
+                "--no-playlist",
+                targetUrl.toString()
         ));
     }
 
     @Override
     public String getTitle() throws DownloadException {
-        List<String> command = new ArrayList<String>() {{
-            addAll(getTitleCommand);
-            add(targetUrl.toString());
-        }};
-        return this.lastLineOfOutput(new ProcessBuilder(command));
+        return this.lastLineOfOutput(this.getTitleProcess);
     }
 
     @Override
     public String getFilename() throws DownloadException {
-        List<String> command = new ArrayList<String>() {{
-            addAll(getFilenameCommand);
-            add(targetUrl.toString());
-        }};
-        return this.lastLineOfOutput(new ProcessBuilder(command));
+        return this.lastLineOfOutput(this.getFilenameProcess);
     }
 
     private String lastLineOfOutput(ProcessBuilder command) throws DownloadException {
@@ -95,22 +87,14 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
     public void downloadVideo(
             Optional<StateChangeEvent> stateChangeCallback,
             Optional<DownloadProgressUpdateEvent> progressUpdateCallback) throws DownloadException {
-        List<String> command = new ArrayList<String>() {{
-            addAll(downloadVideoCommand);
-            add(targetUrl.toString());
-        }};
-        this.download(new ProcessBuilder(command), stateChangeCallback, progressUpdateCallback);
+        this.download(this.downloadVideoProcess, stateChangeCallback, progressUpdateCallback);
     }
 
     @Override
     public void downloadAudio(
             Optional<StateChangeEvent> stateChangeCallback,
             Optional<DownloadProgressUpdateEvent> progressUpdateCallback) throws DownloadException {
-        List<String> command = new ArrayList<String>() {{
-            addAll(downloadAudioCommand);
-            add(targetUrl.toString());
-        }};
-        this.download(new ProcessBuilder(command), stateChangeCallback, progressUpdateCallback);
+        this.download(this.downloadAudioProcess, stateChangeCallback, progressUpdateCallback);
     }
 
     private void download(
