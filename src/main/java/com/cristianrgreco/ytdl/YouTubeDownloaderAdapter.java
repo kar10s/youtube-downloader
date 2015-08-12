@@ -1,6 +1,10 @@
 package com.cristianrgreco.ytdl;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -107,32 +111,28 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
             if (stateChangeCallback.isPresent() || progressUpdateCallback.isPresent()) {
                 BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
                 String line;
-                try {
-                    while ((line = input.readLine()) != null) {
-                        if (line.trim().isEmpty()) {
-                            continue;
-                        }
-                        if (stateChangeCallback.isPresent()) {
-                            if (State.isValidStateMessage(line)) {
-                                State newState = State.parse(line);
-                                if (this.currentState != newState) {
-                                    this.currentState = newState;
-                                    stateChangeCallback.get().callback(this.currentState);
-                                }
-                            }
-                        }
-                        if (progressUpdateCallback.isPresent()) {
-                            if (DownloadProgress.isValidProgressMessage(line)) {
-                                progressUpdateCallback.get().callback(DownloadProgress.parse(line));
-                            }
-                        }
+                while ((line = input.readLine()) != null) {
+                    if (line.trim().isEmpty()) {
+                        continue;
                     }
                     if (stateChangeCallback.isPresent()) {
-                        this.currentState = State.COMPLETE;
-                        stateChangeCallback.get().callback(this.currentState);
+                        if (State.isValidStateMessage(line)) {
+                            State newState = State.parse(line);
+                            if (this.currentState != newState) {
+                                this.currentState = newState;
+                                stateChangeCallback.get().callback(this.currentState);
+                            }
+                        }
                     }
-                } catch (IOException e) {
-                    throw new IllegalStateException(e);
+                    if (progressUpdateCallback.isPresent()) {
+                        if (DownloadProgress.isValidProgressMessage(line)) {
+                            progressUpdateCallback.get().callback(DownloadProgress.parse(line));
+                        }
+                    }
+                }
+                if (stateChangeCallback.isPresent()) {
+                    this.currentState = State.COMPLETE;
+                    stateChangeCallback.get().callback(this.currentState);
                 }
             }
 
