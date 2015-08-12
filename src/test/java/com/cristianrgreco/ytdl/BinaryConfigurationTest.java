@@ -1,6 +1,5 @@
 package com.cristianrgreco.ytdl;
 
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -10,6 +9,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 public class BinaryConfigurationTest {
     private static final File YOUTUBEDL_BINARY;
@@ -36,9 +36,9 @@ public class BinaryConfigurationTest {
     public void correctlyCreatesModelIfBinariesExist() {
         BinaryConfiguration binaryConfiguration = new BinaryConfiguration(YOUTUBEDL_BINARY, FFMPEG_BINARY, FFPROBE_BINARY);
 
-        Assert.assertThat("YouTubeDl binary is the same as that provided", binaryConfiguration.getYouTubeDlBinary(), is(YOUTUBEDL_BINARY));
-        Assert.assertThat("Ffmpeg binary is the same as that provided", binaryConfiguration.getFfmpegBinary(), is(FFMPEG_BINARY));
-        Assert.assertThat("Ffprobe binary is the same as that provided", binaryConfiguration.getFfprobeBinary(), is(FFPROBE_BINARY));
+        assertThat("YouTubeDl binary is the same as that provided", binaryConfiguration.getYouTubeDlBinary(), is(YOUTUBEDL_BINARY));
+        assertThat("Ffmpeg binary is the same as that provided", binaryConfiguration.getFfmpegBinary(), is(FFMPEG_BINARY));
+        assertThat("Ffprobe binary is the same as that provided", binaryConfiguration.getFfprobeBinary(), is(FFPROBE_BINARY));
     }
 
     @Test
