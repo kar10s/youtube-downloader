@@ -7,11 +7,20 @@ import static org.hamcrest.Matchers.is;
 
 public class DownloadExceptionTest {
     @Test
-    public void hasErrorOccurredInExceptionChain() throws DownloadException {
+    public void hasErrorOccurredInExceptionChain() {
         DownloadException ex1 = new DownloadException(Message.from("WARNING: Warning 1"));
         DownloadException ex2 = new DownloadException(Message.from("ERROR: Error 1"), ex1);
         DownloadException ex3 = new DownloadException(Message.from("WARNING: Warning 2"), ex2);
 
         assertThat("An error has occurred in the exception chain", ex3.hasErrorOccurred(), is(true));
+    }
+
+    @Test
+    public void hasErrorNotOccurredInExceptionChain() {
+        DownloadException ex1 = new DownloadException(Message.from("WARNING: Warning 1"));
+        DownloadException ex2 = new DownloadException(Message.from("WARNING: Warning 2"), ex1);
+        DownloadException ex3 = new DownloadException(Message.from("WARNING: Warning 3"), ex2);
+
+        assertThat("An error has not occurred in the exception chain", ex3.hasErrorOccurred(), is(false));
     }
 }
