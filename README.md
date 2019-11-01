@@ -1,4 +1,5 @@
 # YouTube Downloader
+[![](https://jitpack.io/v/kar10s/youtube-downloader.svg)](https://jitpack.io/#kar10s/youtube-downloader)
 
 *This project serves as a Java wrapper for the [youtube-dl](https://rg3.github.io/youtube-dl/) Python binary.*
 
