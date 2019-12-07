@@ -14,7 +14,8 @@ import java.util.Optional;
 public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
     private static final String VIDEO_FORMAT = "mp4";
     private static final String AUDIO_FORMAT = "mp3";
-    private static final String OUTPUT_FORMAT = "%(title)s_%(id)s.%(ext)s";
+    //private static final String OUTPUT_FORMAT = "%(title)s_%(id)s.%(ext)s";
+    private static final String OUTPUT_FORMAT = "%(title)s.%(ext)s";
 
     private final ProcessBuilder getTitleProcess;
     private final ProcessBuilder getFilenameProcess;
@@ -56,6 +57,7 @@ public class YouTubeDownloaderAdapter implements BaseYouTubeDownloaderAdapter {
                 "--format", VIDEO_FORMAT,
                 "--extract-audio",
                 "--audio-format", AUDIO_FORMAT,
+                "--audio-quality","0",
                 "--ffmpeg-location", binaryConfiguration.getFfmpegBinary().getAbsolutePath(),
                 "--no-part",
                 "--no-playlist",
